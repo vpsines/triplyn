@@ -1,7 +1,26 @@
-import React from 'react'
-import {Outlet} from "react-router";
+import {Outlet, redirect} from "react-router";
 import {SidebarComponent} from "@syncfusion/ej2-react-navigations";
 import {MobileSidebar, NavItems} from "../../../components";
+import {account} from "~/appwrite/client";
+import {getExistingUser, saveUserData} from "~/appwrite/auth";
+
+export async function clientLoader() {
+    try{
+        const user = await account.get();
+        if(!user.$id) return redirect("/sign-in");
+
+        const existingUser = await  getExistingUser(user.$id);
+
+        if(existingUser?.status === 'user'){
+           return  redirect("/");
+        }
+
+        return existingUser?.$id ? existingUser : await saveUserData();
+    }catch(error){
+        console.log("Error in client loader",error);
+        return redirect("/sign-in");
+    }
+}
 
 const AdminLayout = () => {
     return (
@@ -10,7 +29,7 @@ const AdminLayout = () => {
 
             <aside className="w-full max-w-[270px] hidden lg:block">
                 <SidebarComponent width={270} enableGestures={false} >
-                    <NavItems />
+                    <NavItems handleClick={()=>{}}/>
                 </SidebarComponent>
             </aside>
 

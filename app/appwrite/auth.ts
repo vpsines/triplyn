@@ -5,18 +5,12 @@ import {redirect} from "react-router";
 export const loginWithGoogle = async () => {
     try{
         account.createOAuth2Session({
-            provider:OAuthProvider.Google
+            provider:OAuthProvider.Google,
+            success: `${window.location.origin}/`,
+            failure:`${window.location.origin}/404`
         });
     }catch(error){
         console.log("logInWithGoogle",error);
-    }
-}
-
-export const logOut = async () => {
-    try{
-
-    }catch(error){
-        console.log(error);
     }
 }
 
@@ -36,7 +30,7 @@ export const getUser = async () => {
             }
         )
 
-        return rows.length > 0 ? rows[0] : redirect("/sign-injm");
+        return rows.length > 0 ? rows[0] : redirect("/sign-in");
     }catch(error){
         console.log(error);
     }
@@ -96,5 +90,13 @@ export const getExistingUser = async (id: string) => {
     }catch(error){
         console.log("Error fetching user",error);
         return null;
+    }
+}
+
+export const logOut = async() =>{
+    try {
+        await account.deleteSession({sessionId:"current"});
+    } catch (error) {
+        console.error("Error during logout:", error);
     }
 }
