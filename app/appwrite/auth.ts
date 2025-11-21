@@ -100,3 +100,23 @@ export const logOut = async() =>{
         console.error("Error during logout:", error);
     }
 }
+
+export const getAllUsers = async (limit:number,offset:number) => {
+    try{
+        const {rows : users,total} = await db.listRows({
+            databaseId:appwriteConfig.databaseId,
+            tableId:appwriteConfig.userCollectionId,
+            queries:[
+                Query.limit(limit),
+                Query.offset(offset),
+            ]
+        })
+
+        if(total === 0) return {users:[],total}
+
+        return {users,total}
+    }catch (error) {
+        console.log('Error fetching users',error);
+        return {users:[], total:0};
+    }
+}
