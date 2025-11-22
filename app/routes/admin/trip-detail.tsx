@@ -1,5 +1,5 @@
-import {getTripById} from "~/appwrite/trips";
-import {Header, InfoPill} from "../../../components";
+import {getAllTrips, getTripById} from "~/appwrite/trips";
+import {Header, InfoPill, TripCard} from "../../../components";
 import type {LoaderFunctionArgs} from "react-router";
 import type { Route } from "./+types/trip-detail";
 import {cn, getFirstWord, parseTripData} from "~/lib/utils";
@@ -9,13 +9,26 @@ export const loader = async ({params}:LoaderFunctionArgs)=>{
     const {tripId} = params;
     if(!tripId) throw new Error("Trip Id is required");
 
-    return await getTripById(tripId);
+    const [trip,getAllTripsResult] = await Promise.all([
+        await getTripById(tripId),
+        await getAllTrips(4,0)
+    ])
+
+    return {
+        trip,
+        trips:getAllTripsResult.trips.map(({$id,tripDetails,imageUrls})=>({
+            id: $id,
+            ...parseTripData(tripDetails),
+            imageUrls: imageUrls ?? [],
+        }))
+    };
 }
 
 const TripDetail = ({loaderData}:Route.ComponentProps) => {
 
-    const tripData = parseTripData(loaderData?.tripDetails);
-    const imageUrls = loaderData?.imageUrls || [];
+    const tripData = parseTripData(loaderData?.trip?.tripDetails);
+    const imageUrls = loaderData?.trip?.imageUrls || [];
+    const trips = loaderData?.trips;
 
     const {
         name,
@@ -149,9 +162,6 @@ const TripDetail = ({loaderData}:Route.ComponentProps) => {
                                         ))
                                     }
                                 </ul>
-
-
-
                             </li>
                         ))
                     }
@@ -176,10 +186,26 @@ const TripDetail = ({loaderData}:Route.ComponentProps) => {
                         </section>
                     ))
                 }
+            </section>
 
-                <section className="flex flex-col gap-6">
-                    <h2 className="p-24-semibold text-dark-100">Popular Trips</h2>
-                </section>
+            <section className="flex flex-col gap-6">
+                <h2 className="p-24-semibold text-dark-100">Popular Trips</h2>
+
+                <div className="trip-grid">
+                    {
+                        trips.map(({id,name,imageUrls,itinerary,interests,travelStyle,estimatedPrice})=>(
+                            <TripCard
+                                id={id}
+                                key={id}
+                                name={name ?? ''}
+                                location={itinerary?.[0].location ??''}
+                                imageUrl={imageUrls[0]}
+                                tags={[interests ?? '' ,travelStyle ?? '']}
+                                price={estimatedPrice ?? ''}
+                            />
+                        ))
+                    }
+                </div>
             </section>
         </main>
     )
