@@ -28,10 +28,10 @@ const TripCard = ({id,name,location,imageUrl,tags,price}:TripCardProps) => {
                 <ChipListComponent id="travel-chip">
                 <ChipsDirective>
                     {
-                        tags.map((tag,index) => (
+                        tags?.map((tag,index) => (
                             <ChipDirective
                                 key={index}
-                                text={getFirstWord(tag)}
+                                text={ getFirstWord(tag)}
                                 cssClass={cn( index===1?
                                 '!bg-pink-50 !text-pink-500':
                                  '!bg-success-50 !text-success-700')}

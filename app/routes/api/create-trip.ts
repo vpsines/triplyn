@@ -1,8 +1,8 @@
 import {type ActionFunctionArgs, data} from "react-router";
-import {GoogleGenerativeAI} from "@google/generative-ai";
 import {parseMarkdownToJson} from "~/lib/utils";
 import {appwriteConfig, db} from "~/appwrite/client";
 import {ID} from "appwrite";
+import { GoogleGenAI } from "@google/genai";
 
 export const action = async({request}:ActionFunctionArgs) =>{
     const {
@@ -15,7 +15,8 @@ export const action = async({request}:ActionFunctionArgs) =>{
         userId
     } = await  request.json();
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+    // const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+    const genAi = new GoogleGenAI({apiKey: process.env.GOOGLE_API_KEY});
     const unsplashApiKey = process.env.UNSPLASH_ACCESS_KEY;
 
     try{
@@ -67,13 +68,19 @@ export const action = async({request}:ActionFunctionArgs) =>{
     ]
     }`;
 
-        const textResult = await genAI
-            .getGenerativeModel({model:'gemini-2.5-flash'})
-            .generateContent([prompt])
 
-        // const trip = parseMarkdownToJson(textResult.response.text());
-        const trip = textResult.response.text();
+        const textResult = await genAi.models.generateContent({
+            model:'gemini-2.5-flash',
+            contents:prompt
+        })
 
+        console.log('ai-result:',textResult)
+        console.log('ai-result-text:',textResult.text)
+
+        if(!textResult.text) throw new Error("Travel plan generation failed");
+
+        const trip = parseMarkdownToJson(textResult.text);
+        console.log("json:",trip);
 
         const imageResponse = await fetch(
             `https://api.unsplash.com/search/photos?query=${country} ${interests} ${travelStyle}&client_id=${unsplashApiKey}`,
@@ -97,6 +104,7 @@ export const action = async({request}:ActionFunctionArgs) =>{
         );
 
         return data({id:result.$id});
+
     }catch(error){
         console.error("Error generating travel plan",error)
     }

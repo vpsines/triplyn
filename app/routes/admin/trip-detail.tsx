@@ -211,3 +211,5 @@ const TripDetail = ({loaderData}:Route.ComponentProps) => {
     )
 }
 export default TripDetail
+
+

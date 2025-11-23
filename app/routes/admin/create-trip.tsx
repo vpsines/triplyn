@@ -67,6 +67,8 @@ const CreateTrip = ({loaderData}:Route.ComponentProps) => {
             return;
         }
 
+        setError(null);
+
         try{
             const response = await fetch('/api/create-trip',{
                 method: "POST",
